@@ -1,11 +1,61 @@
 import datetime
 
-# Variáveis globais
-saldo = 0
-limite = 500
-extrato = []
-numero_saques = 0
-LIMITE_SAQUES = 3
+# Classe Cliente
+class Cliente:
+    def __init__(self, nome, cpf):
+        self.nome = nome
+        self.cpf = cpf
+        self.conta = None
+
+    def associar_conta(self, conta):
+        self.conta = conta
+
+# Classe ContaBancaria
+class ContaBancaria:
+    LIMITE_SAQUES = 3
+
+    def __init__(self, cliente, saldo=0, limite=500):
+        self.cliente = cliente
+        self.saldo = saldo
+        self.limite = limite
+        self.extrato = []
+        self.numero_saques = 0
+
+    def depositar(self, valor):
+        if valor > 0:
+            self.saldo += valor
+            self.extrato.append(f"{datetime.datetime.now()} - Depósito: +R$ {valor:.2f}")
+            print("✅ Depósito realizado com sucesso.")
+        else:
+            print("❌ Valor inválido para depósito.")
+
+    def sacar(self, valor):
+        if self.numero_saques >= ContaBancaria.LIMITE_SAQUES:
+            print("❌ Limite diário de saques atingido.")
+            return
+
+        if valor > self.saldo:
+            print("❌ Saldo insuficiente.")
+        elif valor > self.limite:
+            print("❌ Valor do saque excede o limite por operação.")
+        elif valor > 0:
+            self.saldo -= valor
+            self.numero_saques += 1
+            self.extrato.append(f"{datetime.datetime.now()} - Saque: -R$ {valor:.2f}")
+            print("✅ Saque realizado com sucesso.")
+        else:
+            print("❌ Valor inválido para saque.")
+
+    def exibir_extrato(self):
+        print("\n========== EXTRATO ==========")
+        if not self.extrato:
+            print("Nenhuma movimentação realizada.")
+        else:
+            for operacao in self.extrato:
+                print(operacao)
+        print(f"\nSaldo atual: R$ {self.saldo:.2f}")
+        print("==============================")
+
 
 # Função para exibir o menu
 def menu():
@@ -18,49 +68,12 @@ def menu():
 ==========================
 """)
 
-# Função para realizar o depósito
-def depositar(valor):
-    global saldo, extrato
-    if valor > 0:
-        saldo += valor
-        extrato.append(f"{datetime.datetime.now()} - Depósito: +R$ {valor:.2f}")
-        print("✅ Depósito realizado com sucesso.")
-    else:
-        print("❌ Valor inválido para depósito.")
-
-# Função para realizar o saque
-def sacar(valor):
-    global saldo, limite, numero_saques, extrato
-    if numero_saques >= LIMITE_SAQUES:
-        print("❌ Limite diário de saques atingido.")
-        return
-
-    if valor > saldo:
-        print("❌ Saldo insuficiente.")
-    elif valor > limite:
-        print("❌ Valor do saque excede o limite por operação.")
-    elif valor > 0:
-        saldo -= valor
-        numero_saques += 1
-        extrato.append(f"{datetime.datetime.now()} - Saque: -R$ {valor:.2f}")
-        print("✅ Saque realizado com sucesso.")
-    else:
-        print("❌ Valor inválido para saque.")
-
-# Função para exibir o extrato
-def exibir_extrato():
-    print("\n========== EXTRATO ==========")
-    if not extrato:
-        print("Nenhuma movimentação realizada.")
-    else:
-        for operacao in extrato:
-            print(operacao)
-    print(f"\nSaldo atual: R$ {saldo:.2f}")
-    print("==============================")
-
 # Função principal
 def main():
-    global saldo, numero_saques
+    # Criando um cliente e associando a conta bancária
+    cliente = Cliente(nome="Ana Laura", cpf="123.456.789-00")
+    conta = ContaBancaria(cliente)
+    cliente.associar_conta(conta)
 
     while True:
         menu()
@@ -68,14 +81,14 @@ def main():
 
         if opcao == 'd':
             valor = float(input("Informe o valor do depósito: R$ "))
-            depositar(valor)
+            conta.depositar(valor)
 
         elif opcao == 's':
             valor = float(input("Informe o valor do saque: R$ "))
-            sacar(valor)
+            conta.sacar(valor)
 
         elif opcao == 'e':
-            exibir_extrato()
+            conta.exibir_extrato()
 
         elif opcao == 'q':
             print("👋 Obrigado por usar o sistema bancário. Até logo!")
